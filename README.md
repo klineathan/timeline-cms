@@ -181,6 +181,69 @@ bun run preview
 bun run check
 ```
 
+## Deployment
+
+This app is configured to deploy on **Netlify**. The backend (server-side routes, API endpoints, database queries) runs on Netlify Functions, which connect to your Supabase backend.
+
+### Deploy to Netlify
+
+#### Option 1: Netlify CLI (Recommended)
+
+1. Install Netlify CLI:
+   ```bash
+   npm install -g netlify-cli
+   ```
+
+2. Login to Netlify:
+   ```bash
+   netlify login
+   ```
+
+3. Initialize and deploy:
+   ```bash
+   netlify init
+   netlify deploy --prod
+   ```
+
+#### Option 2: Git Integration (Easiest)
+
+1. Push your code to GitHub/GitLab/Bitbucket
+2. Go to [Netlify Dashboard](https://app.netlify.com)
+3. Click "Add new site" → "Import an existing project"
+4. Connect your repository
+5. Configure build settings:
+   - **Build command:** `bun run build`
+   - **Publish directory:** `.svelte-kit/netlify`
+
+### Environment Variables
+
+**Important:** You must set these environment variables in Netlify:
+
+1. Go to your site settings → Environment variables
+2. Add the following variables:
+
+```
+DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+SUPABASE_URL=https://[project-ref].supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://[project-ref].supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+**Note:** 
+- Get `DATABASE_URL` from Supabase Dashboard → Settings → Database → Connection string (Transaction pooler)
+- Get `SUPABASE_URL` and `SUPABASE_ANON_KEY` from Supabase Dashboard → Settings → API
+
+### How Backend Works on Netlify
+
+- **Server Routes** (`+page.server.ts`, `+server.ts`) run on Netlify Functions (serverless)
+- **API Routes** (`/api/*`) execute as Netlify Functions
+- **Database queries** connect to Supabase from Netlify Functions
+- **Authentication** works via Supabase Auth (cookies handled automatically)
+- **File uploads** go directly to Supabase Storage
+
+All your backend code works exactly the same as in development!
+
 ## License
 
 MIT
