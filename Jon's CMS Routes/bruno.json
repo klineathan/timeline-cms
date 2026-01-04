@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Jon's CMS Routes",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -78,7 +78,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
 		})
 		.from(posts)
 		.where(eq(posts.status, 'published'))
-		.orderBy(desc(posts.publishedAt))
+		.orderBy(desc(posts.createdAt))
 		.limit(limit)
 		.offset(offset);
 
