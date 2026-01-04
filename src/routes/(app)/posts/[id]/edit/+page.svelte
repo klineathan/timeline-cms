@@ -24,7 +24,7 @@
 	let saving = $state(false);
 	let existingMediaIds = $state<string[]>(data.media.map((m: { id: string }) => m.id));
 	let newMediaFiles = $state<File[]>([]);
-	let newMediaPreviewUrls = $state<string[]>([]);
+	let newMediaPreviewUrls = $state<{ url: string; type: 'image' | 'video' | 'audio' }[]>([]);
 
 	function handleEditorUpdate(html: string, json: object) {
 		content = html;
@@ -39,7 +39,13 @@
 
 			files.forEach((file) => {
 				const url = URL.createObjectURL(file);
-				newMediaPreviewUrls = [...newMediaPreviewUrls, url];
+				let type: 'image' | 'video' | 'audio' = 'image';
+				if (file.type.startsWith('video/')) {
+					type = 'video';
+				} else if (file.type.startsWith('audio/')) {
+					type = 'audio';
+				}
+				newMediaPreviewUrls = [...newMediaPreviewUrls, { url, type }];
 			});
 		}
 	}
@@ -49,7 +55,7 @@
 	}
 
 	function removeNewMedia(index: number) {
-		URL.revokeObjectURL(newMediaPreviewUrls[index]);
+		URL.revokeObjectURL(newMediaPreviewUrls[index].url);
 		newMediaFiles = newMediaFiles.filter((_, i) => i !== index);
 		newMediaPreviewUrls = newMediaPreviewUrls.filter((_, i) => i !== index);
 	}
@@ -231,13 +237,27 @@
 								{/if}
 							{/each}
 
-							{#each newMediaPreviewUrls as url, index}
+							{#each newMediaPreviewUrls as media, index}
 								<div class="relative group">
-									<img
-										src={url}
-										alt="Upload preview"
-										class="w-full aspect-square object-cover rounded-lg"
-									/>
+									{#if media.type === 'image'}
+										<img
+											src={media.url}
+											alt="Upload preview"
+											class="w-full aspect-square object-cover rounded-lg"
+										/>
+									{:else if media.type === 'video'}
+										<video
+											src={media.url}
+											class="w-full aspect-square object-cover rounded-lg"
+											muted
+										>
+											<track kind="captions" />
+										</video>
+									{:else}
+										<div class="w-full aspect-square bg-stone-800 rounded-lg flex items-center justify-center">
+											<span class="text-stone-400 text-sm">Audio file</span>
+										</div>
+									{/if}
 									<button
 										type="button"
 										onclick={() => removeNewMedia(index)}

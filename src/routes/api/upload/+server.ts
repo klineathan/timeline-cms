@@ -4,6 +4,11 @@ import { db } from '$lib/server/db';
 import { media } from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
 
+// Increase body size limit for video uploads (100MB)
+export const config = {
+	bodySize: '100mb'
+};
+
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.session) {
 		throw error(401, 'Unauthorized');

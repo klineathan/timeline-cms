@@ -28,7 +28,7 @@
 	let status = $state<'draft' | 'published'>('draft');
 	let saving = $state(false);
 	let mediaFiles = $state<File[]>([]);
-	let mediaPreviewUrls = $state<string[]>([]);
+	let mediaPreviewUrls = $state<{ url: string; type: 'image' | 'video' | 'audio' }[]>([]);
 
 	function handleEditorUpdate(html: string, json: object) {
 		content = html;
@@ -41,16 +41,22 @@
 			const newFiles = Array.from(input.files);
 			mediaFiles = [...mediaFiles, ...newFiles];
 			
-			// Create preview URLs
+			// Create preview URLs with type info
 			newFiles.forEach(file => {
 				const url = URL.createObjectURL(file);
-				mediaPreviewUrls = [...mediaPreviewUrls, url];
+				let type: 'image' | 'video' | 'audio' = 'image';
+				if (file.type.startsWith('video/')) {
+					type = 'video';
+				} else if (file.type.startsWith('audio/')) {
+					type = 'audio';
+				}
+				mediaPreviewUrls = [...mediaPreviewUrls, { url, type }];
 			});
 		}
 	}
 
 	function removeMedia(index: number) {
-		URL.revokeObjectURL(mediaPreviewUrls[index]);
+		URL.revokeObjectURL(mediaPreviewUrls[index].url);
 		mediaFiles = mediaFiles.filter((_, i) => i !== index);
 		mediaPreviewUrls = mediaPreviewUrls.filter((_, i) => i !== index);
 	}
@@ -190,13 +196,27 @@
 				<div class="space-y-4">
 					{#if mediaPreviewUrls.length > 0}
 						<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-							{#each mediaPreviewUrls as url, index}
+							{#each mediaPreviewUrls as media, index}
 								<div class="relative group">
-									<img
-										src={url}
-										alt="Upload preview"
-										class="w-full aspect-square object-cover rounded-lg"
-									/>
+									{#if media.type === 'image'}
+										<img
+											src={media.url}
+											alt="Upload preview"
+											class="w-full aspect-square object-cover rounded-lg"
+										/>
+									{:else if media.type === 'video'}
+										<video
+											src={media.url}
+											class="w-full aspect-square object-cover rounded-lg"
+											muted
+										>
+											<track kind="captions" />
+										</video>
+									{:else}
+										<div class="w-full aspect-square bg-stone-800 rounded-lg flex items-center justify-center">
+											<span class="text-stone-400 text-sm">Audio file</span>
+										</div>
+									{/if}
 									<button
 										type="button"
 										onclick={() => removeMedia(index)}
